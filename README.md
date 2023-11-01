@@ -32,8 +32,9 @@ projetos não funcionais nesta data não serão avaliados.
 ### Resumo
 
 A aplicação deve (1) abrir um ficheiro indicando os conteúdos do inventário, (2)
-mostrar o inventário no ecrã, e (3) permitir que o utilizador selecione um item
-de modo a mostrar mais informação sobre o mesmo.
+mostrar o inventário no ecrã, (3) permitir que o utilizador selecione um item
+de modo a mostrar mais informação sobre o mesmo, e (4) adicionar e remover
+items.
 
 ### Detalhes
 
@@ -102,10 +103,10 @@ ficheiros `rpginv` em qualquer parte do disco.
 O formato dos ficheiros é exemplificado pela seguinte amostra auto-explicativa:
 
 ```text
-weapon_sword
-weapon_sword
-container_backpack
-    drink_health
+sword
+sword
+backpack
+    potion_health
     food
     pouch
         coin
@@ -115,11 +116,11 @@ food
 scroll_defense
 scroll_attack
 pouch
-    drink_water
-    drink_water
-    drink_health
-    apparel_ring_protection
-apparel_shield
+    water
+    water
+    potion_health
+    ring_protection
+shield
 ```
 
 A pasta [`exemplos`](exemplos) deste repositório contém alguns ficheiros exemplo.
@@ -129,27 +130,44 @@ items, ou porque existe excesso de peso num dos itens contentores especificados.
 O UI deve claramente indicar o erro concreto em cada um dos casos, e não
 _crashar_. Devem testar o vosso projeto com todos estes ficheiros.
 
-#### Mostrar o inventário no ecrã
+#### Apresentação e interação com o inventário
 
-Após abrir um ficheiro válido, a aplicação mostra o inventário no ecrã na forma
-de uma lista rolável, indicando o nome, peso e valor de cada item, e
-opcionalmente uma _sprite_, modelo 3D ou cor que o represente. Os _container
-items_ (mas não os seus conteúdos) devem ser mostrados de igual forma, sendo
-que o respetivo peso e o valor devem corresponder ao peso e valor totais do
-_container item_ **mais** e dos seus conteúdos.
+Após abrir um ficheiro válido, a aplicação apresenta o nível zero do inventário
+(deve haver a indicação _Top Level_ em algum lugar do UI), na forma de uma lista
+rolável, indicando o nome, peso e valor de cada item, e opcionalmente uma
+_sprite_, modelo 3D ou cor que o represente. Os _container items_ (mas não os
+seus conteúdos) devem ser listados de igual forma, sendo que o respetivo peso e
+o valor devem corresponder ao peso e valor **totais** do _container item_ e dos
+seus conteúdos.
 
-Se o utilizador clicar num item, deve ser apresentada informação detalhada
-sobre o mesmo, como descrito na próxima secção.
-
-#### Ver informação detalhada sobre um item
-
-Ao clicar num _action item_ deve ser mostrado um painel de informação detalhado
-sobre o mesmo, indicando o nome, tipo, peso e valor do mesmo.
-
-O painel pode ser fechado pelo utilizador, voltando a aplicação a mostrar o
+Se o utilizador clicar num _action item_, deve ser mostrado um painel de
+informação detalhado sobre o mesmo, indicando o nome, tipo, peso e valor, bem
+como a _sprite_, modelo 3D ou cor que tenham escolhido para representar esse
+item (mas em formato maior do que o apresentado na lista rolável). O painel pode
+ser fechado pelo utilizador, voltando a aplicação a mostrar o nível atual do
 inventário.
 
-Para os _container items_ ...
+Se o utilizador clicar num _container item_, é apresentado o nível seguinte do
+inventário, na forma de uma nova lista rolável com todos os itens contidos
+nesse _container item_, de forma praticamente igual ao nível zero, com as
+seguintes diferenças:
+
+* Em vez da indicação _Top Level_, deve ser indicado o nome do _container item_
+  que contém os itens listados.
+* Deve existir um botão para voltar ao nível acima.
+
+Se existirem _container items_ dentro de _container items_, o utilizador pode
+descer várias vezes de nível, e o botão para voltar leva o utilizador ao nível
+imediatamente acima do atual. No nível zero (_Top Level_), esse botão deve
+estar desativado, pois não existem mais níveis acima.
+
+O utilizador deve poder adicionar e/ou remover itens em cada nível do
+inventário. Ao adicionar itens, o utilizador deve poder escolhe-los de uma lista
+de todos os itens conhecidos. Ao remover um _container item_, além do próprio
+_container item_, são removidos também todos os itens lá contidos.
+
+A forma como UI é implementado deve seguir as boas regras do _game design_, e
+deve ser claro para qualquer utilizador como o sistema funciona.
 
 #### Funcionalidade futura
 
@@ -170,18 +188,14 @@ Exemplos do tipo de perguntas que poderão surgir no Projeto 2 estão disponíve
 
 #### Outros
 
-<!-- * Poderá ser útil existir uma legenda relacionando as _sprites_ com os tipos
-  de terreno e diferentes recursos que representam. -->
 * A aplicação não deve _crashar_ com exceções, mas sim mostrar ao utilizador, de
   forma elegante, possíveis erros que possam ocorrer (por exemplo, na leitura do
   ficheiro caso este tenha um formato inválido, ou existam _container items_
   com peso superior ao seu _MaxWeight_).
+* Devem testar a aplicação com ficheiros contendo centenas ou mesmo milhares de
+  itens, garantindo que a mesma funciona sem problemas de desempenho.
 
-
-
-## Dicas e sugestões
-
-### Organização do projeto e estrutura de classes
+## Organização do projeto e estrutura de classes
 
 O projeto deve estar devidamente organizado, seguindo a fazendo uso de classes,
 `struct`s e/ou enumerações, conforme seja mais apropriado. Cada tipo (i.e.,
