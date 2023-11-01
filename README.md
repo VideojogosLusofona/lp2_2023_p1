@@ -12,8 +12,8 @@ work. If not, see <http://creativecommons.org/licenses/by-nc-sa/4.0/>.
 
 ## Introdução
 
-Os grupos devem implementar, em Unity 2022.3 LTS, os estágios iniciais de um
-[jogo RTS][RTS], nomeadamente um mapa com diferentes tipos de terreno e recursos.
+Os grupos devem implementar, em Unity 2022.3 LTS, um gestor de inventário
+multi-nível para posterior utilização num jogo RPG.
 
 O projetos têm de ser desenvolvidos por **grupos de 2 a 3 alunos** (não são
 permitidos grupos individuais). Até **31 de outubro** é necessários que:
@@ -31,76 +31,83 @@ projetos não funcionais nesta data não serão avaliados.
 
 ### Resumo
 
-A aplicação deve (1) abrir um ficheiro descrevendo o mapa do jogo, contendo
-edifícios e unidades militares, (2) mostrar o mapa no ecrã, e (3) permitir que o
-utilizador selecione e comande uma ou mais unidades (mover, atacar edifícios),
-mostrando a informação sobre a(s) unidade(s) atualmente selecionada(s).
+A aplicação deve (1) abrir um ficheiro indicando os conteúdos do inventário, (2)
+mostrar o inventário no ecrã, e (3) permitir que o utilizador selecione um item
+de modo a mostrar mais informação sobre o mesmo.
 
 ### Detalhes
 
-#### Mapas
+#### Items
 
-Os mapas são constituídos por _tiles_ 2D. Cada _tile_ é composto por **um
-tipo de terreno base** e **zero ou mais recursos**, que definem a **riqueza
-gerada pelo _tile_** em cada turno do hipotético jogo 4X.
+Os itens tem três características obrigatórias (podem ter mais para efeitos de
+_game design_ e visualização, embora isso não seja obrigatório):
 
-Um _tile_ pode gerar dois tipos de riqueza, dependendo do seu tipo de terreno
-base e recursos disponíveis:
+* _Name_
+* _Type_
+* _Weight_
+* _Value_
 
-* _Coin_: representa a riqueza monetária.
-* _Food_: representa a produção alimentar.
+Existem dois tipos gerais de items:
 
-Um _tile_ tem um e apenas um tipo de terreno base. A seguinte tabela indica os
-diferentes tipos de terreno base e a riqueza que cada um gera:
+* _Action items_
+* _Container items_
+  * Além das três características anteriores, os _container items_ têm uma
+    característica _MaxWeight_, que indica o peso máximo que podem transportar
+    (além do seu próprio peso).
 
-| Terreno base | Código no ficheiro | _Coin_ | _Food_ |
-|--------------|--------------------|-------:|-------:|
-| Desert       | `desert`           | 0      | 0      |
-| Plains       | `plains`           | 0      | 2      |
-| Hills        | `hills`            | 1      | 1      |
-| Mountain     | `mountain`         | 1      | 0      |
-| Water        | `water`            | 0      | 1      |
+##### _Action Items_
 
-Um _tile_ pode ainda ter zero ou mais recursos, que modificam a riqueza do tipo
-de terreno base:
+O programa deve reconhecer os seguintes _action items_:
 
-| Recurso      | Código no ficheiro | _Coin_ | _Food_ |
-|--------------|--------------------|-------:|-------:|
-| Plants       | `plants`           | +1     | +2     |
-| Animals      | `animals`          | +1     | +3     |
-| Metals       | `metals`           | +3     | -1     |
-| Fossil Fuel  | `fossilfuel`       | +5     | -3     |
-| Luxury       | `luxury`           | +4     | -1     |
-| Pollution    | `pollution`        | -3     | -3     |
+| Item               | Código no ficheiro | Type       | Weight | Value |
+|--------------------|--------------------|------------|-------:|------:|
+| Sword              | `sword`            | Weapon     | 5.5    | 10.3  |
+| Axe                | `axe`              | Weapon     | 5.5    | 10.3  |
+| Shield             | `shield`           | Apparel    | 7.0    | 8.6   |
+| Ring of Protection | `ring_protection`  | Apparel    | 0.5    | 3.9   |
+| Scroll of Attack   | `scroll_attack`    | Scroll     | 0.4    | 2.9   |
+| Scroll of Defense  | `scroll_defense`   | Scroll     | 0.4    | 2.9   |
+| Health potion      | `potion_health`    | Consumable | 0.5    | 4.8   |
+| Food               | `food`             | Consumable | 0.8    | 3.5   |
+| Water              | `water`            | Consumable | 0.5    | 1.0   |
+| Coin               | `coin`             | Coin       | 0.3    | 1.0   |
 
-Dentro do possível, estas regras não devem estar demasiado enraizadas no código,
-devendo ser fácil alterá-las durante o desenvolvimento do hipotético jogo.
+##### _Container Items_
+
+O programa deve reconhecer os seguintes _container items_:
+
+| Item               | Código no ficheiro | Type      | Weight | Value | Max. Weight |
+|--------------------|--------------------|----------:|-------:|------:|------------:|
+| Pouch              | `pouch`            | Container | 0.2    | 0.6   | 8.0         |
+| Bag                | `bag`              | Container | 0.8    | 1.9   | 16.5        |
+| Backpack           | `backpack`         | Container | 2.3    | 4.9   | 24.8        |
 
 #### Abrir ficheiro
 
-A aplicação começa por pedir ao utilizador o ficheiro descrevendo o mapa. Estes
-ficheiros devem ter a extensão `map4x`. Por exemplo, `mapa1.map4x`,
-`mapa2.map4x` ou `world.map4x` são nomes válidos para ficheiros que descrevem
-mapas. A secção [Formato dos ficheiros de mapa] contém mais detalhes
+A aplicação começa por pedir ao utilizador o ficheiro descrevendo o inventário.
+Estes ficheiros devem ter a extensão `rpginv`. Por exemplo, `coisas.rpginv`,
+`stuff.rpginv` ou `tralha.rpginv` são nomes válidos para ficheiros que descrevem
+inventários. A secção [Formato dos ficheiros de inventário] contém mais detalhes
 sobre o formato interno destes ficheiros.
 
-Para simplificar, a aplicação procura apenas mapas na pasta `map4xfiles` (tudo
+Para simplificar, a aplicação procura apenas mapas na pasta `inventory` (tudo
 em minúsculas), localizada no _Desktop_/ambiente de trabalho do utilizador
-atual. A aplicação apresenta ao utilizador uma lista ("_scrolável_") com os
-ficheiros `map4x` existentes nessa pasta, e o utilizador seleciona um deles.
-Quem quiser fazer uma aplicação mais avançada, com bonificação na nota, pode
-tentar usar um _asset_ como o [UnitySimpleFileBrowser] que consiga abrir
-ficheiros `map4x` em qualquer parte do disco.
+atual. Atenção que esta procura deve funcionar em qualquer computador e sistema
+operativo. A aplicação apresenta ao utilizador uma lista rolável (_scrollable_)
+com os ficheiros `rpginv` existentes nessa pasta, e o utilizador seleciona um
+deles. Quem quiser fazer uma aplicação mais avançada, com bonificação na nota,
+pode tentar usar um _asset_ como o [UnitySimpleFileBrowser] que consiga abrir
+ficheiros `rpginv` em qualquer parte do disco.
 
-#### Mostrar o mapa no ecrã
+#### Mostrar o inventário no ecrã
 
-Após abrir um ficheiro válido, a aplicação mostra o mapa no ecrã. O mapa deve
-caber no ecrã, seja qual for o seu tamanho real. Por outras palavras, o mapa
-deve ser escalado de modo a ficar totalmente visível no ecrã, seja o seu tamanho
-10x5 ou 200x400. Em alternativa, podem implementar um sistema de _scroll_ e/ou
-_zoom_, mas esta é uma abordagem mais avançada e inteiramente opcional.
+Após abrir um ficheiro válido, a aplicação mostra o inventário no ecrã na forma
+de uma lista rolável, indicando o peso e o valor de cada item. Os _container
+items_  devem ser mostrados (mas não os seus conteúdos), sendo que o respetivo
+peso e o valor devem corresponder ao peso e valor do _container item_ **mais** o
+peso e valor de todos os itens lá guardados.
 
-A renderização de cada _tile_ pode ser feita com as _sprites_ básicas fornecidas
+<!-- A renderização de cada _tile_ pode ser feita com as _sprites_ básicas fornecidas
 pelo Unity. Cada tipo de terreno deve ser representado por uma _sprite_ quadrada
 cuja cor deve ser apropriada ao terreno em questão. Por cima da _sprite_ do
 terreno devem ser colocadas as _sprites_ dos recursos existentes nesse _tile_.
@@ -116,23 +123,17 @@ deve ser sempre possível distinguir o terreno base e eventuais recursos nele
 existentes.
 
 Se o utilizador clicar num _tile_, deve ser apresentada informação detalhada
-sobre o mesmo, como descrito na próxima secção.
+sobre o mesmo, como descrito na próxima secção. -->
 
-#### Ver informação detalhada sobre um _tile_
+#### Ver informação detalhada sobre um item
 
-Ao clicar num _tile_ deve ser mostrado um painel de informação detalhado sobre
-esse mesmo _tile_. Em particular, deve ser mostrado:
-
-* A renderização do _tile_ em tamanho um pouco maior.
-* Qual o terreno base.
-* Quais os recursos.
-* Qual o _coin_ produzido em cada turno tendo em conta o terreno base e os
-  recursos existentes.
-* Qual a _food_ produzida em cada turno tendo em conta o terreno base e os
-  recursos existentes.
+Ao clicar num _action item_ deve ser mostrado um painel de informação detalhado
+sobre o mesmo...
 
 O painel pode ser fechado pelo utilizador, voltando a aplicação a mostrar o
-mapa.
+inventário.
+
+Para os _container items_ ...
 
 #### Funcionalidade futura
 
@@ -144,7 +145,7 @@ O painel pode ser fechado pelo utilizador, voltando a aplicação a mostrar o
 mapa.
 
 Esta funcionalidade será implementada individualmente para o Projeto 2, durante
-a sessão de avaliação de _live coding_ agendada para dia 13 de dezembro. Por
+a sessão de avaliação de _live coding_ agendada para dia 28 de novembro. Por
 esta razão será muito difícil fazerem o Projeto 2 (_live coding_) caso não
 tenham completado com sucesso este projeto.
 
@@ -153,78 +154,45 @@ Exemplos do tipo de perguntas que poderão surgir no Projeto 2 estão disponíve
 
 #### Outros
 
-* Poderá ser útil existir uma legenda relacionando as _sprites_ com os tipos
-  de terreno e diferentes recursos que representam.
+<!-- * Poderá ser útil existir uma legenda relacionando as _sprites_ com os tipos
+  de terreno e diferentes recursos que representam. -->
 * A aplicação não deve _crashar_ com exceções, mas sim mostrar ao utilizador, de
   forma elegante, possíveis erros que possam ocorrer (por exemplo, na leitura do
-  ficheiro caso este tenha um formato inválido).
+  ficheiro caso este tenha um formato inválido, ou existam _container items_
+  com peso superior ao seu _MaxWeight_).
 
-### Formato dos ficheiros de mapa
+### Formato dos ficheiros de inventário
 
-O formato dos ficheiros é o seguinte (`<componente>` significa um componente
-obrigatório e `[componente]` representa um componente opcional):
-
-```text
-<rows> <cols>
-<base_terrain> [resource1] [resource2] [...]
-<base_terrain> [resource1] [resource2] [...]
-<base_terrain> [resource1] [resource2] [...]
-<...>
-```
-
-A primeira linha indica o número de linhas e colunas do mapa. As linhas
-seguintes representam _tiles_, começando pelo terreno base, seguindo-se os
-respetivos recursos opcionais (zero ou mais). O número de _tiles_ deve ser igual
-a `rows` _x_ `cols`. Cada nova linha (_tile_) no ficheiro avança uma coluna no
-mapa, passando para a próxima linha no mapa quando atingir o número máximo de
-colunas. O seguinte mapa é válido (notar que `#` significa o início de um
-comentário, que deve ser ignorado):
+O formato dos ficheiros é exemplificado pela seguinte amostra auto-explicativa:
+<!--  (`<componente>` significa um componente
+obrigatório e `[componente]` representa um componente opcional):-->
 
 ```text
-3 4               # Mapa com 3 linhas e 4 colunas
-plains            # Linha 1, coluna 1
-plains animals    # Linha 1, coluna 2
-plains            # Linha 1, coluna 3
-plains            # Linha 1, coluna 4
-# Aqui começam os tiles da 2ª linha
-plains plants     # Linha 2, coluna 1
-hills metals luxury  # etc...
-hills luxury
-mountain
-# De seguida os tiles na 3ª e última linha
-plains plants animals
-hills metals fossilfuel
-mountain metals plants fossilfuel
-mountain plants
-# Tudo o que aparecer a seguir de # deve ser ignorado
+weapon_sword
+weapon_sword
+container_backpack
+    drink_health
+    food
+    pouch
+        coin
+        coin
+        coin
+food
+scroll_defense
+scroll_attack
+pouch
+    drink_water
+    drink_water
+    drink_health
+    apparel_ring_protection
+apparel_shield
 ```
 
-Este enunciado inclui um gerador de mapas para testarem o vosso projeto. O
-gerador é executado da seguinte forma na pasta do enunciado (não funciona se
-estiverem noutra pasta que não a do enunciado):
-
-```text
-$ dotnet run --project Generator -- pcg 10 10 mymap.map4x
-```
-
-O comando anterior cria um mapa 10x10 com geração procedimental e guarda-o no
-ficheiro `mymap.map4x`. O gerador também pode gerar mapas totalmente aleatórios
-alterando `pcg` para `random`, ou seja:
-
-```text
-$ dotnet run --project Generator -- random 10 10 mymap.map4x
-```
-
-É também disponibilizado um visualizador de mapas para a linha de comandos
-(apenas capaz de mostrar terrenos, não recursos), que pode ser executado da
-seguinte forma:
-
-```text
-$ dotnet run --project Viewer -- mymap.map4x
-```
-
-Atenção que é necessário terem instalado o [.NET SDK 6.0] para executarem estes
-projetos.
+A pasta `exemplos` contém alguns ficheiros de exemplo. Ficheiro cujo nome
+termina em _invalid_ indicam ficheiros inválidos, ou porque contêm conteúdos
+inválidos, ou porque algum item não-contentor contém outros items, ou porque
+existe excesso de peso num dos itens contentores especificados. O UI deve
+claramente indicar o erro concreto em cada um dos casos, e não _crashar_.
 
 ## Dicas e sugestões
 
@@ -233,7 +201,7 @@ projetos.
 O projeto deve estar devidamente organizado, seguindo a fazendo uso de classes,
 `struct`s e/ou enumerações, conforme seja mais apropriado. Cada tipo (i.e.,
 classe, `struct` ou enumeração) deve ser colocado num ficheiro com o mesmo nome.
-Por exemplo, uma classe chamada `Tile` deve ser colocada no ficheiro `Tile.cs`.
+Por exemplo, uma classe chamada `Item` deve ser colocada no ficheiro `Item.cs`.
 Por sua vez, a escolha da coleção ou coleções a usar também deve ser adequada
 ao problema.
 
@@ -245,25 +213,6 @@ orientada a objetos, como é o caso, entre outros, dos princípios [SOLID].
 Estes princípios devem ser balanceados com o princípio [KISS], crucial no
 desenvolvimento de qualquer aplicação.
 
-<!--
-### Sugestão para arquitetura do projeto
-
-Seja em consola ou Unity, um bom modelo para começar a organizar as classes
-deste projeto é o seguinte:
-
-* Uma classe controladora central que guia o programa. Tudo o que acontece
-  no programa parte desta classe.
-* Uma classe exclusivamente dedicada ao UI.
-* Uma classe cuja responsabilidade é apenas abrir o ficheiro e produzir as
-  coleções necessárias de...
-* Uma classe cuja única responsabilidade é realizar _queries_ e devolver os
-  resultados...
-
-Esta sugestão é apenas um ponto de partida, pois poderão ser necessárias mais
-classes/tipos para obter uma boa arquitetura. Dependendo da implementação,
-também é possível obter bons designs com abordagens ligeiramente diferentes.
--->
-
 ## Objetivos e critério de avaliação
 
 Este projeto tem os seguintes objetivos:
@@ -274,17 +223,17 @@ Este projeto tem os seguintes objetivos:
     [Organização do projeto e estrutura de classes][orgclasses]).
   * Inexistência de código "morto", que não faz nada, como por exemplo
     variáveis, propriedades ou métodos nunca usados.
-  * Projeto compila e executa sem erros e/ou *warnings*.
+  * Projeto compila e executa sem erros e/ou _warnings_.
 * **O3** - Código devidamente indentado, comentado e documentado. Documentação
   deve ser feita com [comentários de documentação XML][XML].
 * **O4** - Repositório Git deve refletir boa utilização do mesmo, com
-  *commits* de todos os elementos do grupo e mensagens de *commit* que sigam
+  _commits_ de todos os elementos do grupo e mensagens de _commit_ que sigam
   as melhores práticas para o efeito (como indicado
   [aqui](https://chris.beams.io/posts/git-commit/),
   [aqui](https://gist.github.com/robertpainsi/b632364184e70900af4ab688decf6f53),
   [aqui](https://github.com/erlang/otp/wiki/writing-good-commit-messages) e
   [aqui](https://stackoverflow.com/questions/2290016/git-commit-messages-50-72-formatting)).
-  Quaisquer *assets* binários, tais como imagens, devem ser integrados
+  Quaisquer _assets_ binários, tais como imagens, devem ser integrados
   no repositório em modo Git LFS (atenção que este último ponto é **muito
   importante**).
 * **O5** - Relatório em formato [Markdown] (ficheiro `README.md`),
@@ -293,18 +242,18 @@ Este projeto tem os seguintes objetivos:
   * Autoria:
     * Nome dos autores (primeiro e último) e respetivos números de aluno.
     * Informação de quem fez o quê no projeto. Esta informação é
-      **obrigatória** e deve refletir os *commits* feitos no Git.
-  * Legenda dos _tiles_, ou seja, que tipo de terreno e recursos representa cada
-    _sprite_.
+      **obrigatória** e deve refletir os _commits_ feitos no Git.
+  * Legenda dos _itens_, ou seja, que _sprite_ representa cada _item_.
   * Arquitetura da solução:
     * Descrição da solução, com breve explicação de como o programa foi
       organizado, indicação dos _design patterns_ utilizados e porquê, bem como
       dos cuidados tidos ao nível dos princípios [SOLID].
     * Um diagrama UML de classes simples (i.e., sem indicação dos
       membros da classe) descrevendo a estrutura de classes (**obrigatório**).
-  * Referências, incluindo trocas de ideias com colegas, código aberto
-    reutilizado (e.g., do StackOverflow) e bibliotecas de terceiros
-    utilizadas. Devem ser o mais detalhados possível.
+  * Referências, incluindo trocas de ideias com colegas, sugestões dadas por IAs
+    generativas (e.g., ChatGPT), código aberto reutilizado (e.g., do
+    StackOverflow) e bibliotecas de terceiros utilizadas. Devem ser o mais
+    detalhados possível.
   * **Nota:** o relatório deve ser simples e breve, com informação mínima e
     suficiente para que seja possível ter uma boa ideia do que foi feito.
     Atenção aos erros ortográficos e à correta formatação [Markdown], pois
@@ -315,9 +264,9 @@ de forma qualitativa. Isto significa que todos os objetivos têm de ser
 parcialmente ou totalmente cumpridos. A cada objetivo, O1 a O5, será atribuída
 uma nota entre 0 e 1. A nota do projeto será dada pela seguinte fórmula:
 
-*N = 3.5 x O1 x O2 x O3 x O4 x O5 x D*
+_N = 3.5 x O1 x O2 x O3 x O4 x O5 x D_
 
-Em que *D* corresponde à nota da discussão e percentagem equitativa de
+Em que _D_ corresponde à nota da discussão e percentagem equitativa de
 realização do projeto, também entre 0 e 1. Isto significa que se os alunos
 ignorarem completamente um dos objetivos, não tenham feito nada no projeto ou
 não comparecerem na discussão, a nota final será zero.
@@ -325,13 +274,13 @@ não comparecerem na discussão, a nota final será zero.
 ## Entrega
 
 O projeto é entregue de forma automática através do GitHub. Mais concretamente,
-o repositório do projeto será automaticamente clonado às **23h00 de de 4 de
-dezembro de 2022**. Certifiquem-se de que a aplicação está funcional e que todos
+o repositório do projeto será automaticamente clonado às **23h00 de 19 de
+novembro de 2023**. Certifiquem-se de que a aplicação está funcional e que todos
 os requisitos foram cumpridos, caso contrário o projeto não será avaliado.
 
 O repositório deve ter:
 
-* Projeto Unity 2021.3 LTS funcional.
+* Projeto Unity 2022.3 LTS funcional.
 * Ficheiros `.gitignore` e `.gitattributes` adequados para projetos Unity.
 * Ficheiro `README.md` contendo o relatório do projeto em formato [Markdown].
 * Ficheiros de imagens, contendo o diagrama UML de classes e outras figuras
@@ -359,6 +308,15 @@ entanto, copiar códigos, documentação e relatórios de outros alunos, ou dar 
 seus próprios códigos, documentação e relatórios a outros em qualquer
 circunstância. De facto, não devem sequer deixar códigos, documentação e
 relatórios em computadores de uso partilhado.
+
+**Sobre IAs generativas (e.g. ChatGPT):** podem usar este tipo de ferramentas
+para esclarecer dúvidas, ou até para obterem uma ou outra sugestão de código,
+desde de que as ideias e organização geral do projeto sejam originais. Código
+completamente fornecido por uma IA generativa será facilmente detetável pelas
+ferramentas de deteção de plágio, pelo que sugerimos muito cuidado no uso deste
+tipo de ferramentas. De qualquer forma, todo o código gerado através de IA
+(parcialmente ou totalmente) deve ser indicado em forma de comentário e nas
+referências do relatório.
 
 Nesta disciplina, a desonestidade académica é considerada fraude, com
 todas as consequências legais que daí advêm. Qualquer fraude terá como
@@ -407,11 +365,9 @@ Estruturas de Dados][aed] do [Instituto Superior Técnico][ist]*
 [SOLID]:https://en.wikipedia.org/wiki/SOLID
 [KISS]:https://en.wikipedia.org/wiki/KISS_principle
 [XML]:https://docs.microsoft.com/dotnet/csharp/codedoc
-[2º projeto de LP1 2018/19]:https://github.com/VideojogosLusofona/lp1_2018_p2_solucao
 [orgclasses]:#organização-do-projeto-e-estrutura-de-classes
 [objetivos]:#objetivos-e-critério-de-avaliação
-[RTS]:https://en.wikipedia.org/wiki/Real-time_strategy
 [UnitySimpleFileBrowser]:https://github.com/yasirkula/UnitySimpleFileBrowser
-[Formato dos ficheiros de mapa]:#formato-dos-ficheiros-de-mapa
+[Formato dos ficheiros de inventário]:#formato-dos-ficheiros-de-inventario
 [MVC]:https://www.geeksforgeeks.org/mvc-design-pattern/
 [.NET SDK 6.0]:https://dotnet.microsoft.com/download/dotnet/6.0
