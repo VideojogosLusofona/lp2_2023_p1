@@ -43,6 +43,7 @@ Os itens tem três características obrigatórias (podem ter mais para efeitos d
 _game design_ e visualização, embora isso não seja obrigatório):
 
 * _Name_
+* _FileCode_
 * _Type_
 * _Weight_
 * _Value_
@@ -59,39 +60,38 @@ Existem dois tipos gerais de items:
 
 O programa deve reconhecer os seguintes _action items_:
 
-| Item               | Código no ficheiro | Type       | Weight | Value |
-|--------------------|--------------------|------------|-------:|------:|
-| Sword              | `sword`            | Weapon     | 5.5    | 10.3  |
-| Axe                | `axe`              | Weapon     | 5.5    | 10.3  |
-| Shield             | `shield`           | Apparel    | 7.0    | 8.6   |
-| Ring of Protection | `ring_protection`  | Apparel    | 0.5    | 3.9   |
-| Scroll of Attack   | `scroll_attack`    | Scroll     | 0.4    | 2.9   |
-| Scroll of Defense  | `scroll_defense`   | Scroll     | 0.4    | 2.9   |
-| Health potion      | `potion_health`    | Consumable | 0.5    | 4.8   |
-| Food               | `food`             | Consumable | 0.8    | 3.5   |
-| Water              | `water`            | Consumable | 0.5    | 1.0   |
-| Coin               | `coin`             | Coin       | 0.3    | 1.0   |
+| Name               | FileCode          | Type       | Weight | Value |
+|--------------------|-------------------|------------|-------:|------:|
+| Sword              | `sword`           | Weapon     | 5.5    | 10.3  |
+| Axe                | `axe`             | Weapon     | 8.9    | 13.7  |
+| Shield             | `shield`          | Apparel    | 7.0    | 8.6   |
+| Ring of Protection | `ring_protection` | Apparel    | 0.3    | 3.9   |
+| Scroll of Attack   | `scroll_attack`   | Scroll     | 0.4    | 2.9   |
+| Scroll of Defense  | `scroll_defense`  | Scroll     | 0.4    | 2.8   |
+| Health potion      | `potion_health`   | Consumable | 0.5    | 4.8   |
+| Food               | `food`            | Consumable | 0.8    | 3.5   |
+| Water              | `water`           | Consumable | 0.5    | 1.0   |
+| Coin               | `coin`            | Coin       | 0.1    | 1.0   |
 
 ##### _Container Items_
 
 O programa deve reconhecer os seguintes _container items_:
 
-| Item               | Código no ficheiro | Type      | Weight | Value | Max. Weight |
-|--------------------|--------------------|----------:|-------:|------:|------------:|
-| Pouch              | `pouch`            | Container | 0.2    | 0.6   | 8.0         |
-| Bag                | `bag`              | Container | 0.8    | 1.9   | 16.5        |
-| Backpack           | `backpack`         | Container | 2.3    | 4.9   | 24.8        |
+| Name               | FileCode   | Type      | Weight | Value | MaxWeight |
+|--------------------|------------|----------:|-------:|------:|----------:|
+| Pouch              | `pouch`    | Container | 0.2    | 0.6   | 8.0       |
+| Bag                | `bag`      | Container | 0.8    | 1.9   | 16.5      |
+| Backpack           | `backpack` | Container | 2.3    | 4.9   | 24.8      |
 
 #### Abrir ficheiro
 
 A aplicação começa por pedir ao utilizador o ficheiro descrevendo o inventário.
 Estes ficheiros devem ter a extensão `rpginv`. Por exemplo, `coisas.rpginv`,
 `stuff.rpginv` ou `tralha.rpginv` são nomes válidos para ficheiros que descrevem
-inventários. A secção [Formato dos ficheiros de inventário] contém mais detalhes
-sobre o formato interno destes ficheiros.
+inventários.
 
-Para simplificar, a aplicação procura apenas mapas na pasta `inventory` (tudo
-em minúsculas), localizada no _Desktop_/ambiente de trabalho do utilizador
+Para simplificar, a aplicação procura apenas ficheiros na pasta `inventory`
+(tudo em minúsculas), localizada no _Desktop_/ambiente de trabalho do utilizador
 atual. Atenção que esta procura deve funcionar em qualquer computador e sistema
 operativo. A aplicação apresenta ao utilizador uma lista rolável (_scrollable_)
 com os ficheiros `rpginv` existentes nessa pasta, e o utilizador seleciona um
@@ -99,36 +99,52 @@ deles. Quem quiser fazer uma aplicação mais avançada, com bonificação na no
 pode tentar usar um _asset_ como o [UnitySimpleFileBrowser] que consiga abrir
 ficheiros `rpginv` em qualquer parte do disco.
 
+O formato dos ficheiros é exemplificado pela seguinte amostra auto-explicativa:
+
+```text
+weapon_sword
+weapon_sword
+container_backpack
+    drink_health
+    food
+    pouch
+        coin
+        coin
+        coin
+food
+scroll_defense
+scroll_attack
+pouch
+    drink_water
+    drink_water
+    drink_health
+    apparel_ring_protection
+apparel_shield
+```
+
+A pasta [`exemplos`](exemplos) deste repositório contém alguns ficheiros exemplo.
+Ficheiros cujo nome termina em _invalid_ indicam ficheiros inválidos, ou porque
+contêm conteúdos inválidos, ou porque algum item não-contentor contém outros
+items, ou porque existe excesso de peso num dos itens contentores especificados.
+O UI deve claramente indicar o erro concreto em cada um dos casos, e não
+_crashar_. Devem testar o vosso projeto com todos estes ficheiros.
+
 #### Mostrar o inventário no ecrã
 
 Após abrir um ficheiro válido, a aplicação mostra o inventário no ecrã na forma
-de uma lista rolável, indicando o peso e o valor de cada item. Os _container
-items_  devem ser mostrados (mas não os seus conteúdos), sendo que o respetivo
-peso e o valor devem corresponder ao peso e valor do _container item_ **mais** o
-peso e valor de todos os itens lá guardados.
+de uma lista rolável, indicando o nome, peso e valor de cada item, e
+opcionalmente uma _sprite_, modelo 3D ou cor que o represente. Os _container
+items_ (mas não os seus conteúdos) devem ser mostrados de igual forma, sendo
+que o respetivo peso e o valor devem corresponder ao peso e valor totais do
+_container item_ **mais** e dos seus conteúdos.
 
-<!-- A renderização de cada _tile_ pode ser feita com as _sprites_ básicas fornecidas
-pelo Unity. Cada tipo de terreno deve ser representado por uma _sprite_ quadrada
-cuja cor deve ser apropriada ao terreno em questão. Por cima da _sprite_ do
-terreno devem ser colocadas as _sprites_ dos recursos existentes nesse _tile_.
-Sugiro que usem _sprites_ do tipo círculo ou triângulo, cada uma representando
-um recurso diferente (usem cores/formas para diferenciar entre recursos). Mesmo
-que o _tile_ tenha todos os recursos possíveis, deve ser sempre visível a
-_sprite_ de fundo que representa o tipo de terreno base.
-
-Se tiverem tempo podem melhorar a apresentação e usar _tilesets_ gráficos mais
-apelativos, embora isso não seja muito valorizado na nota final, uma vez que a
-principal componente aqui a ser avaliada é a programação. Em qualquer dos casos,
-deve ser sempre possível distinguir o terreno base e eventuais recursos nele
-existentes.
-
-Se o utilizador clicar num _tile_, deve ser apresentada informação detalhada
-sobre o mesmo, como descrito na próxima secção. -->
+Se o utilizador clicar num item, deve ser apresentada informação detalhada
+sobre o mesmo, como descrito na próxima secção.
 
 #### Ver informação detalhada sobre um item
 
 Ao clicar num _action item_ deve ser mostrado um painel de informação detalhado
-sobre o mesmo...
+sobre o mesmo, indicando o nome, tipo, peso e valor do mesmo.
 
 O painel pode ser fechado pelo utilizador, voltando a aplicação a mostrar o
 inventário.
@@ -161,38 +177,7 @@ Exemplos do tipo de perguntas que poderão surgir no Projeto 2 estão disponíve
   ficheiro caso este tenha um formato inválido, ou existam _container items_
   com peso superior ao seu _MaxWeight_).
 
-### Formato dos ficheiros de inventário
 
-O formato dos ficheiros é exemplificado pela seguinte amostra auto-explicativa:
-<!--  (`<componente>` significa um componente
-obrigatório e `[componente]` representa um componente opcional):-->
-
-```text
-weapon_sword
-weapon_sword
-container_backpack
-    drink_health
-    food
-    pouch
-        coin
-        coin
-        coin
-food
-scroll_defense
-scroll_attack
-pouch
-    drink_water
-    drink_water
-    drink_health
-    apparel_ring_protection
-apparel_shield
-```
-
-A pasta `exemplos` contém alguns ficheiros de exemplo. Ficheiro cujo nome
-termina em _invalid_ indicam ficheiros inválidos, ou porque contêm conteúdos
-inválidos, ou porque algum item não-contentor contém outros items, ou porque
-existe excesso de peso num dos itens contentores especificados. O UI deve
-claramente indicar o erro concreto em cada um dos casos, e não _crashar_.
 
 ## Dicas e sugestões
 
@@ -207,11 +192,13 @@ ao problema.
 
 A estrutura de classes deve ser bem pensada e organizada de forma lógica,
 fazendo uso de *design patterns* quando apropriado. Em particular, o projeto
-deve seguir uma abordagem [MVC] (discutida em LP1, ver _slides_ do semestre
-passado), e ser desenvolvido tendo em conta os princípios de programação
-orientada a objetos, como é o caso, entre outros, dos princípios [SOLID].
-Estes princípios devem ser balanceados com o princípio [KISS], crucial no
-desenvolvimento de qualquer aplicação.
+deve seguir uma abordagem [MVC], e ser desenvolvido tendo em conta os princípios
+de programação orientada a objetos, como é o caso, entre outros, dos princípios
+[SOLID]. Estes princípios devem ser balanceados com o princípio [KISS], crucial
+no desenvolvimento de qualquer aplicação.
+
+Finalmente, deve ser muito simples adicionar novos itens, de preferência **sem
+que seja necessário alterar ou adicionar código**.
 
 ## Objetivos e critério de avaliação
 
@@ -243,7 +230,8 @@ Este projeto tem os seguintes objetivos:
     * Nome dos autores (primeiro e último) e respetivos números de aluno.
     * Informação de quem fez o quê no projeto. Esta informação é
       **obrigatória** e deve refletir os _commits_ feitos no Git.
-  * Legenda dos _itens_, ou seja, que _sprite_ representa cada _item_.
+  * Legenda dos _itens_, ou seja, que objeto no ecrã (_sprite_, modelo 3D ou
+    cor) representa cada _item_.
   * Arquitetura da solução:
     * Descrição da solução, com breve explicação de como o programa foi
       organizado, indicação dos _design patterns_ utilizados e porquê, bem como
